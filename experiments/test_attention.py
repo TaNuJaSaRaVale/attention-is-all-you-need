@@ -16,8 +16,16 @@ V = torch.tensor([
     [30.0, 40.0]
 ])
 
+seq_len = Q.size(0)
 
-output , weights= scaled_dot_product_attention(Q, K, V)
+mask = torch.tril(
+    torch.ones(seq_len, seq_len)
+)
+
+output , weights= scaled_dot_product_attention(Q, K, V,mask)
+
+print("Causal mask:")
+print(mask)
 
 print("Attention weights:")
 print(weights)
