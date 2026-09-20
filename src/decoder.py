@@ -2,6 +2,7 @@ import torch.nn as nn
 
 from src.multi_head_attention import MultiHeadAttention
 from src.feed_forward import FeedForward
+from src.positional_encoding import PositionalEncoding
 
 
 class DecoderLayer(nn.Module):
@@ -29,19 +30,18 @@ class DecoderLayer(nn.Module):
 
     def forward(self, x, encoder_output, mask=None):
 
-        # Masked self-attention
         self_attention_output, _ = self.self_attention(
             x,
-            mask
+            mask=mask
         )
 
         x = self.norm1(
             x + self_attention_output
         )
 
-        # Encoder-decoder cross-attention
         cross_attention_output, _ = self.cross_attention(
             x,
+            encoder_output,
             encoder_output
         )
 
@@ -49,11 +49,62 @@ class DecoderLayer(nn.Module):
             x + cross_attention_output
         )
 
-        # Feed-forward network
         ffn_output = self.feed_forward(x)
 
         x = self.norm3(
             x + ffn_output
         )
+
+        return x
+
+
+class Decoder(nn.Module):
+    def __init__(
+        self,
+        vocab_size,
+        d_model,
+        num_heads,
+        d_ff,
+        num_layers,
+        max_seq_len
+    ):
+        super().__init__()
+
+        self.embedding = nn.Embedding(
+            vocab_size,
+            d_model
+        )
+
+        self.positional_encoding = PositionalEncoding(
+            d_model,
+            max_seq_len
+        )
+
+        self.layers = nn.ModuleList([
+            DecoderLayer(
+                d_model,
+                num_heads,
+                d_ff
+            )
+            for _ in range(num_layers)
+        ])
+
+    def forward(
+        self,
+        x,
+        encoder_output,
+        mask=None
+    ):
+
+        x = self.embedding(x)
+
+        x = self.positional_encoding(x)
+
+        for layer in self.layers:
+            x = layer(
+                x,
+                encoder_output,
+                mask
+            )
 
         return x
