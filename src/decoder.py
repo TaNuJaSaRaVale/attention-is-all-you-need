@@ -1,4 +1,5 @@
 import torch.nn as nn
+import math
 
 from src.multi_head_attention import MultiHeadAttention
 from src.feed_forward import FeedForward
@@ -69,6 +70,7 @@ class Decoder(nn.Module):
         max_seq_len
     ):
         super().__init__()
+        self.d_model = d_model
 
         self.embedding = nn.Embedding(
             vocab_size,
@@ -96,7 +98,7 @@ class Decoder(nn.Module):
         mask=None
     ):
 
-        x = self.embedding(x)
+        x = self.embedding(x) * math.sqrt(self.d_model)
 
         x = self.positional_encoding(x)
 
