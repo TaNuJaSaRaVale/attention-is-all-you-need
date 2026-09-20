@@ -82,3 +82,11 @@ for epoch in range(1000):
             f"Epoch {epoch + 1}, "
             f"Loss: {loss.item():.4f}"
         )
+
+
+        torch.save(
+    model.state_dict(),
+    "transformer_toy.pth"
+)
+
+print("Model saved.")
